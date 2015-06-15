@@ -4,7 +4,7 @@ function codeIsValid($code,$date){
 	
 
 	 $thisyearnumber = date('y');
-	 $thisdaydate    = date('yy-mm-dd');
+	 $thisdaydate    = date('Y-m-d');
 	 
 	 // Get 2 first digit from code
 	 $digit = substr($code, 0, 2);
@@ -37,7 +37,11 @@ function dd_codes_create ()
 			
 			$wpdb->insert('wp_code', array('number_code' => $number_code, 'validity_code' => $validity_code, 'valid_code' => 1, 'updated' => '0000-00-00', 'user_id' => 0));
 		
-			$message .= "Code ajouté";
+			$location = admin_url('admin.php?page=dd_codes_list');
+			$location = add_query_arg( array( 'insert' => 'insert') , $location );
+			
+			wp_redirect( $location );
+			exit;
 		
 		}
 		else

@@ -28,7 +28,7 @@ function dd_codes_list () {
 	
 		<?php if($_GET['update']){?><div class="updated"><p>Code mis à jour</p></div><?php } ?>
 		
-		<?php if($_GET['create']){?><div class="updated"><p>Code crée</p></div><?php } ?>
+		<?php if($_GET['insert']){?><div class="updated"><p>Code crée</p></div><?php } ?>
 		
 		<h3>Année en cours <?php echo $currentDate; ?></h3>
 		

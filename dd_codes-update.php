@@ -12,11 +12,13 @@ $validity_code = $_POST["validity_code"];
 //update
 if(isset($_POST['update'])){	
 
+	$date = ($_POST["user_id"] > 0 ? date('Y-m-d') : '0000-00-00');
+
 	$user_id = ($_POST["user_id"] > 0 ? $_POST["user_id"] : 0);
 	
 	$wpdb->update(
 		'wp_code', //table
-		array('number_code' => $number_code, 'validity_code' => $validity_code, 'valid_code' => 0, 'updated' => '0000-00-00', 'user_id' => $user_id), //data
+		array('number_code' => $number_code, 'validity_code' => $validity_code, 'valid_code' => 0, 'updated' => $date, 'user_id' => $user_id), //data
 		array( 'id_code' => $id_code ), //where
 		array('%d','%s','%d','%s','%d'), //data format	
 		array('%d') //data format	
@@ -65,6 +67,10 @@ else
 	
 	<form method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 		
+				
+		<p>Utilisé le : <?php echo $updated; ?></p>
+		
+		
 		<table class='wp-list-table widefat fixed striped' style="width: 450px;margin-top: 20px;">
 			<tr>
 				<th>Code</th>
@@ -75,11 +81,40 @@ else
 				<td align="right"><input id="validity_code" type="text" name="validity_code" value="<?php echo $validity_code;?>"/></td>
 			</tr>
 			<tr>
-				<td>Assigner à :</td>
-				<td align="right">
-					<input type='text' id="userFind" value=''>
-					<input type='hidden' id="userFindId" name="user_id" value=''>
-				</td>
+				
+				<?php
+					$name = '';
+					
+					if($user_id)
+					{
+						
+						$user_info  = get_userdata($user_id);
+		
+				        $email      = $user_info->user_email;
+				        $first_name = $user_info->first_name;
+				        $last_name  = $user_info->last_name;
+				        
+				        $name    = (!empty($first_name) && !empty($last_name) ? $first_name.' '.$last_name : $email);
+						$user_id = $user_id;
+				        
+				        echo '<p>Par: <a href="'.admin_url('user-edit.php?user_id=' . $user_id, 'http' ).'">'.$name.'</a></p>';
+				  ?>
+					  <td>Utilisé par :</td>
+						<td align="right">
+							<input type='text' id="userFind" value="<?php echo $name; ?>">
+							<input type='hidden' id="userFindId" name="user_id" value="<?php echo $user_id; ?>">
+						</td>
+				        
+				  <?php }else{ ?>
+				    
+		
+					<td>Assigner à :</td>
+					<td align="right">
+						<input type='text' id="userFind" value=''>
+						<input type='hidden' id="userFindId" name="user_id" value='0'>
+					</td>
+				       
+				  <?php } ?>
 			</tr>
 			<tr>
 				<td>&nbsp;</td>
@@ -92,31 +127,6 @@ else
 				<td>&nbsp;</td>
 			</tr>
 		</table>
-		
-		<p>Utilisé le : <?php echo $updated; ?></p>
-		
-		<?php
-			if($user_id){
-				
-				$user_info  = get_userdata($user_id);
-
-		        $email      = $user_info->user_email;
-		        $first_name = $user_info->first_name;
-		        $last_name  = $user_info->last_name;
-		        
-		        if(!empty($first_name) && !empty($last_name))
-		        {
-			        $name = $first_name.' '.$last_name;
-		        }
-		        else
-		        {
-			        $name = $email;
-		        }
-		        
-		        echo '<p>Par: <a href="'.admin_url('user-edit.php?user_id=' . $user_id, 'http' ).'">'.$name.'</a></p>';
-		    }	
-		?>
-
 		
 	</form>
 	
