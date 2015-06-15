@@ -1,4 +1,25 @@
 <?php
+	
+function codeIsValid($code,$date){
+	
+
+	 $thisyearnumber = date('y');
+	 $thisdaydate    = date('yy-mm-dd');
+	 
+	 // Get 2 first digit from code
+	 $digit = substr($code, 0, 2);
+	 
+	 if( $digit >= $thisyearnumber && $date > $thisdaydate)
+	 {
+		 
+		 return true;
+	 }
+	 
+	 return false;
+	
+}
+	
+	
 function dd_codes_create () 
 {
 	
@@ -10,14 +31,22 @@ function dd_codes_create ()
 	if(isset($_POST['insert']))
 	{
 		global $wpdb;
+
+		if(codeIsValid($number_code,$validity_code))
+		{
+			
+			$wpdb->insert('wp_code', array('number_code' => $number_code, 'validity_code' => $validity_code, 'valid_code' => 1, 'updated' => '0000-00-00', 'user_id' => 0));
 		
-		$wpdb->insert(
-			'wp_code', //table
-			array('number_code' => $number_code, 'validity_code' => $validity_code, 'valid_code' => 0, 'updated' => '0000-00-00', 'user_id' => 0), //data
-			array('%d','%s','%d','%s','%d') //data format			
-		);
+			$message .= "Code ajouté";
 		
-		$message .= "Code ajouté";
+		}
+		else
+		{
+			
+			$message .= "Ce code n'est pas valide, veuillez vérifier la date ou le format du code (2 premier chiffre = année de validité)";
+			
+		}
+		
 	}
 	?>
 	
@@ -28,27 +57,36 @@ function dd_codes_create ()
 		
 		<?php if (isset($message)): ?><div class="updated"><p><?php echo $message;?></p></div><?php endif;?>
 		
+		<p><a href="<?php echo admin_url('admin.php?page=dd_codes_list')?>">&laquo; Retour aux codes</a></p>
+		
 		<form method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
-			<table class='wp-list-table widefat fixed'>
+			<table class='wp-list-table widefat fixed striped' style="width: 450px; margin-top: 20px;">
 				<tr>
 					<th>Code</th>
-					<td><input type="text" name="number_code" value="<?php echo $number_code;?>"/></td>
+					<td align="right"><input type="text" name="number_code" value="<?php echo $number_code;?>"/></td>
 				</tr>
 				<tr>
 					<th>Date de validité</th>
-					<td><input id="validity_code" type="text" name="validity_code" value="<?php echo $validity_code;?>"/></td>
+					<td align="right"><input id="validity_code" type="text" name="validity_code" value="<?php echo $validity_code;?>"/></td>
 				</tr>
+				<tr>
+					<th>&nbsp;</th>
+					<td align="right"><input type='submit' name="insert" value='Ajouter' class='button button-primary'></td>
+				</tr>
+				
 			</table>
-			<input type='submit' name="insert" value='Envoyer' class='button'>
+			
+			
+			
 		</form>
 		
 	
 	    <script>
-	    jQuery(function() {
-	        jQuery( "#validity_code" ).datepicker({
-	            dateFormat : "dd-mm-yy"
-	        });
-	    });
+		    jQuery(function() {
+		        jQuery( "#validity_code" ).datepicker({
+		            dateFormat : "yy-mm-dd"
+		        });
+		    });
 	    </script> 
 		
 	</div>

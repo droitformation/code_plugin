@@ -8,18 +8,38 @@ $id_code 	   = $_GET["id_code"];
 $number_code   = $_POST["number_code"];
 $validity_code = $_POST["validity_code"];
 
+
 //update
 if(isset($_POST['update'])){	
+
+	$user_id = ($_POST["user_id"] > 0 ? $_POST["user_id"] : 0);
+	
 	$wpdb->update(
 		'wp_code', //table
-		array('number_code' => $number_code, 'validity_code' => $validity_code, 'valid_code' => 0, 'updated' => '0000-00-00', 'user_id' => 0), //data
+		array('number_code' => $number_code, 'validity_code' => $validity_code, 'valid_code' => 0, 'updated' => '0000-00-00', 'user_id' => $user_id), //data
 		array( 'id_code' => $id_code ), //where
 		array('%d','%s','%d','%s','%d'), //data format	
 		array('%d') //data format	
 	);	
+	
+	$location = admin_url('admin.php?page=dd_codes_list');
+	$location = add_query_arg( array( 'updated' => 'updated') , $location );
+
+	wp_redirect( $location );
+	exit;
+	
 }
-else if(isset($_POST['delete'])){	
+else if(isset($_POST['delete']))
+{	
+	
 	$wpdb->query($wpdb->prepare("DELETE FROM wp_code WHERE id_code = %s",$id_code));
+	
+	$location = admin_url('admin.php?page=dd_codes_list');
+	$location = add_query_arg( array( 'delete' => 'delete') , $location );
+	
+	wp_redirect( $location );
+	exit;
+	
 }
 else
 {
@@ -30,6 +50,8 @@ else
 	{
 		$number_code   = $code->number_code;
 		$validity_code = $code->validity_code;
+		$updated       = $code->updated;
+		$user_id       = $code->user_id;
 	}
 }
 ?>
@@ -37,42 +59,96 @@ else
 <link type="text/css" href="<?php echo WP_PLUGIN_URL; ?>/dd_codes/style-admin.css" rel="stylesheet" />
 
 <div class="wrap">
-	<h2>Codes d'accès</h2>
+	<h2>&Eacute;diter le codes d'accès</h2>
 	
-	<?php if($_POST['delete']){?>
+	<p><a href="<?php echo admin_url('admin.php?page=dd_codes_list')?>">&laquo; Retour aux codes</a></p>
 	
-	<div class="updated"><p>Code supprimé</p></div>
-	<a href="<?php echo admin_url('admin.php?page=dd_codes_list')?>">&laquo; Retour aux codes</a>
-	
-	<?php } else if($_POST['update']) {?>
-	
-	<div class="updated"><p>Code mis à jour</p></div>
-	<a href="<?php echo admin_url('admin.php?page=dd_codes_list')?>">&laquo; Retour aux codes</a>
-	
-	<?php } else {?>
-		<form method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
-			
-			<table class='wp-list-table widefat fixed striped' style="width: 450px;">
-				<tr>
-					<th>Code</th>
-					<td><input type="text" name="number_code" value="<?php echo $number_code;?>"/></td>
-				</tr>
-				<tr>
-					<th>Date de validité</th>
-					<td><input id="validity_code" type="text" name="validity_code" value="<?php echo $validity_code;?>"/></td>
-				</tr>
-			</table>
-			<input type='submit' name="update" value='Envoyer' class='button'> &nbsp;&nbsp;
-			<input type='submit' name="delete" value='Supprimer' class='button' onclick="return confirm('&iquest;Est&aacute;s seguro de borrar este elemento?')">
-			
-		</form>
-	<?php }?>
+	<form method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+		
+		<table class='wp-list-table widefat fixed striped' style="width: 450px;margin-top: 20px;">
+			<tr>
+				<th>Code</th>
+				<td align="right"><input type="text" name="number_code" value="<?php echo $number_code;?>"/></td>
+			</tr>
+			<tr>
+				<th>Date de validité</th>
+				<td align="right"><input id="validity_code" type="text" name="validity_code" value="<?php echo $validity_code;?>"/></td>
+			</tr>
+			<tr>
+				<td>Assigner à :</td>
+				<td align="right">
+					<input type='text' id="userFind" value=''>
+					<input type='hidden' id="userFindId" name="user_id" value=''>
+				</td>
+			</tr>
+			<tr>
+				<td>&nbsp;</td>
+				<td align="right"><input type='submit' name="update" value='Envoyer' class='button button-primary'></td>
+			</tr>
+			<tr>
+				<td align="left">
+					<input type='submit' name="delete" value='Supprimer' class='button button-delete' onclick="return confirm('Voulez-vous vraiment supprimer ce code?')">
+					</td>
+				<td>&nbsp;</td>
+			</tr>
+		</table>
+		
+		<p>Utilisé le : <?php echo $updated; ?></p>
+		
+		<?php
+			if($user_id){
+				
+				$user_info  = get_userdata($user_id);
+
+		        $email      = $user_info->user_email;
+		        $first_name = $user_info->first_name;
+		        $last_name  = $user_info->last_name;
+		        
+		        if(!empty($first_name) && !empty($last_name))
+		        {
+			        $name = $first_name.' '.$last_name;
+		        }
+		        else
+		        {
+			        $name = $email;
+		        }
+		        
+		        echo '<p>Par: <a href="'.admin_url('user-edit.php?user_id=' . $user_id, 'http' ).'">'.$name.'</a></p>';
+		    }	
+		?>
+
+		
+	</form>
 	
 	<script>
 	    jQuery(function() {
+		    
 	        jQuery( "#validity_code" ).datepicker({
 	            dateFormat : "dd-mm-yy"
 	        });
+	        
+	        var se_ajax_url = '<?php echo admin_url('admin-ajax.php'); ?>';
+
+
+	        var url = se_ajax_url + "?action=wpgetall-users";
+	        
+			jQuery("#userFind").autocomplete({
+				source: url,
+				delay: 200,
+				minLength: 3,
+				focus: function( event, ui ) {
+			        jQuery( "#userFind" ).val( ui.item.label );
+			        return false;
+			    },
+			    select: function( event, ui ) {
+			        jQuery( "#userFind" ).val( ui.item.label );
+			        jQuery( "#userFindId" ).val( ui.item.value );
+			 
+			        return false;
+			    }
+			});
+			
+
 	    });
     </script> 
 

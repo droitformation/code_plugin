@@ -11,32 +11,30 @@ function dd_codes_list () {
 <div class="wrap">
 	<h2>Codes d'accès</h2>
 	
-	<p><a class="add-new-h2" href="<?php echo admin_url('admin.php?page=dd_codes_create'); ?>">Ajouter nouveau code</a></p>
-	<?php
-			
-		global $wpdb;
-		
-		$thisyear = date('Y');
-		
+	<p style="margin-bottom: 20px;"><a class="add-new-h2" href="<?php echo admin_url('admin.php?page=dd_codes_create'); ?>">Ajouter nouveau code</a></p>
+		<?php
 				
-		if(isset($_POST['annee'])) 
-		{ 
-			$currentDate = $_POST['annee']; 
-		} 
-		else
-		{ 
-			$currentDate = date("Y"); 
-		}
+			global $wpdb;
+			
+			$thisyear = date('Y');
 		
-		$rows = $wpdb->get_results('SELECT * from wp_code WHERE validity_code BETWEEN "'.$currentDate.'-01-01" AND "'.$currentDate.'-12-31" ORDER BY number_code ASC,validity_code ASC'); 
+			$currentDate = (isset($_POST['annee']) ? $_POST['annee'] : date("Y")); 
+			
+			$rows = $wpdb->get_results('SELECT * from wp_code WHERE validity_code BETWEEN "'.$currentDate.'-01-01" AND "'.$currentDate.'-12-31" ORDER BY number_code ASC,validity_code ASC'); 
+			
+		?>
+	
+		<?php if($_GET['delete']){?><div class="updated"><p>Code supprimé</p></div><?php } ?>
+	
+		<?php if($_GET['update']){?><div class="updated"><p>Code mis à jour</p></div><?php } ?>
 		
+		<?php if($_GET['create']){?><div class="updated"><p>Code crée</p></div><?php } ?>
 		
-	?>
-		
-		<h4>Année en cours <?php echo $currentDate; ?></h4>
+		<h3>Année en cours <?php echo $currentDate; ?></h3>
 		
 		<form action="<?php echo admin_url( 'admin.php?page=dd_codes_list'); ?>" method="post">
 			<div class="alignleft actions">
+				<label>Filtrer par &nbsp;</label>
 				<select name='annee'>
 					<option value='' selected='selected'>Année</option>
 					<?php
@@ -110,7 +108,26 @@ function dd_codes_list () {
 	
 	<script>
 		 jQuery(function() {
-	        jQuery('#myTable').DataTable();
+	        jQuery('#myTable').DataTable({
+		         "pageLength": 25,
+		         language: {
+			        processing:     "Traitement en cours...",
+			        search:         "Rechercher&nbsp;:",
+			        lengthMenu:     "Afficher _MENU_ &eacute;l&eacute;ments",
+			        info:           "Affichage de _START_ &agrave; _END_ sur _TOTAL_ lignes",
+			        infoEmpty:      "Affichage de 0 &agrave; 0 sur 0 lignes",
+			        infoFiltered:   "(filtr&eacute; de _MAX_ lignes au total)",
+			        zeroRecords:    "Aucun &eacute;l&eacute;ment &agrave; afficher",
+			        emptyTable:     "Aucune donnée disponible",
+			        paginate: {
+			            first:      "Premier",
+			            previous:   "Pr&eacute;c&eacute;dent",
+			            next:       "Suivant",
+			            last:       "Dernier"
+			        }
+			    }
+	        });
+	        
 	    });
 	</script>
 </div>
