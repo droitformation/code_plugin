@@ -7,6 +7,8 @@
 	Author URI: http://designpond.ch
 */
 
+require_once( plugin_dir_path( __FILE__ ) . 'bootstrap.php' );
+
 //menu items
 add_action('admin_menu','dd_codes_modifymenu');
 
@@ -27,7 +29,15 @@ function dd_codes_modifymenu() {
 	'manage_options', //capability
 	'dd_codes_create', //menu slug
 	'dd_codes_create'); //function
-	
+
+    //this is a submenu
+    add_submenu_page('dd_codes_import', //parent slug
+    'Importer des codes', //page title
+    'Importer des codes', //menu title
+    'manage_options', //capability
+    'dd_codes_import', //menu slug
+    'dd_codes_import'); //function
+
 	//this submenu is HIDDEN, however, we need to add it anyways
 	add_submenu_page(null, //parent slug
 	'Mettre à jour le code', //page title
@@ -52,10 +62,8 @@ add_action('admin_enqueue_scripts', 'add_e2_date_picker');
 add_action('wp_ajax_wpgetall-users', 'ajaxAllUser');
 add_action('wp_ajax_nopriv_wpgetall-users', 'ajaxAllUser');
 
-
 function ajaxAllUser() {
-	
-		
+
 	$search_string = esc_attr( trim($_GET['term']) );
 	
 	$users = new WP_User_Query( array(
@@ -104,10 +112,12 @@ function ajaxAllUser() {
 define('ROOTDIR', plugin_dir_path(__FILE__));
 
 add_action('init', 'do_output_buffer');
+
 function do_output_buffer() {
-        ob_start();
+    ob_start();
 }
 
 require_once(ROOTDIR . 'dd_codes-list.php');
 require_once(ROOTDIR . 'dd_codes-create.php');
 require_once(ROOTDIR . 'dd_codes-update.php');
+require_once(ROOTDIR . 'dd_codes-import.php');

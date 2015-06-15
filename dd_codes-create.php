@@ -31,6 +31,7 @@ function dd_codes_create ()
 	if(isset($_POST['insert']))
 	{
 		global $wpdb;
+        $message = '';
 
 		if(codeIsValid($number_code,$validity_code))
 		{
@@ -46,9 +47,7 @@ function dd_codes_create ()
 		}
 		else
 		{
-			
 			$message .= "Ce code n'est pas valide, veuillez vérifier la date ou le format du code (2 premier chiffre = année de validité)";
-			
 		}
 		
 	}
@@ -79,9 +78,6 @@ function dd_codes_create ()
 				</tr>
 				
 			</table>
-			
-			
-			
 		</form>
 		
 	

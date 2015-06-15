@@ -16,7 +16,7 @@ function dd_codes_list () {
 				
 			global $wpdb;
 			
-			$thisyear = date('Y');
+			$thisyear    = date('Y') + 1;
 		
 			$currentDate = (isset($_POST['annee']) ? $_POST['annee'] : date("Y")); 
 			

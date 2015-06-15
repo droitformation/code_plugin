@@ -1,0 +1,13 @@
+{
+    "require": {
+        "phpoffice/phpexcel": "1.8.0",
+        "phpunit/phpunit": "4.0.*",
+        "gargron/fileupload": "1.0.*"
+    },
+    "autoload": {
+	    "psr-0": {
+            "PHPExcel": "Classes/",
+            "src": "./"
+        }
+	}
+}
