@@ -1,31 +1,25 @@
 <?php
-function dd_codes_update () {
-	
-global $wpdb;
 
+if ( file_exists('vendor/autoload.php' ) ) require 'vendor/autoload.php';
+
+function dd_codes_update () {
+
+$create = new src\Codes();
 
 $id_code 	   = $_GET["id_code"];
-$number_code   = $_POST["number_code"];
-$validity_code = $_POST["validity_code"];
-
+$number_code   = (isset($_POST["number_code"]) ? $_POST["number_code"] : '');
+$validity_code = (isset($_POST["validity_code"]) ? $_POST["validity_code"] : '');
 
 //update
-if(isset($_POST['update'])){	
-
-	$date = ($_POST["user_id"] > 0 ? date('Y-m-d') : '0000-00-00');
-
+if(isset($_POST['update']))
+{
+	$date    = ($_POST["user_id"] > 0 ? date('Y-m-d') : '0000-00-00');
 	$user_id = ($_POST["user_id"] > 0 ? $_POST["user_id"] : 0);
-	
-	$wpdb->update(
-		'wp_code', //table
-		array('number_code' => $number_code, 'validity_code' => $validity_code, 'valid_code' => 0, 'updated' => $date, 'user_id' => $user_id), //data
-		array( 'id_code' => $id_code ), //where
-		array('%d','%s','%d','%s','%d'), //data format	
-		array('%d') //data format	
-	);	
-	
+
+    $create->update(['number_code' => $number_code, 'validity_code' => $validity_code, 'valid_code' => 0, 'updated' => $date, 'user_id' => $user_id], $id_code);
+
 	$location = admin_url('admin.php?page=dd_codes_list');
-	$location = add_query_arg( array( 'updated' => 'updated') , $location );
+	$location = add_query_arg( array('updated' => 'updated') , $location );
 
 	wp_redirect( $location );
 	exit;
@@ -34,19 +28,19 @@ if(isset($_POST['update'])){
 else if(isset($_POST['delete']))
 {	
 	
-	$wpdb->query($wpdb->prepare("DELETE FROM wp_code WHERE id_code = %s",$id_code));
+    $create->delete($id_code);
 	
 	$location = admin_url('admin.php?page=dd_codes_list');
 	$location = add_query_arg( array( 'delete' => 'delete') , $location );
 	
 	wp_redirect( $location );
 	exit;
-	
+
 }
 else
 {
 	//selecting value to update	
-	$codes = $wpdb->get_results($wpdb->prepare("SELECT * from wp_code where id_code=%s",$id_code));
+	$codes = $create->getCode($id_code);
 	
 	foreach ($codes as $code )
 	{
@@ -66,11 +60,9 @@ else
 	<p><a href="<?php echo admin_url('admin.php?page=dd_codes_list')?>">&laquo; Retour aux codes</a></p>
 	
 	<form method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
-		
-				
+
 		<p>Utilisé le : <?php echo $updated; ?></p>
-		
-		
+
 		<table class='wp-list-table widefat fixed striped' style="width: 450px;margin-top: 20px;">
 			<tr>
 				<th>Code</th>

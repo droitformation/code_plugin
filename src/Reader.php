@@ -3,25 +3,37 @@
 use PHPExcel;
 use PHPExcel_IOFactory;
 use src\Upload;
+use src\Codes;
 
 class Reader{
 
     protected $phpexcel;
     protected $path;
     protected $uploader;
+    protected $code;
+
     public $csv;
+    public $validityDate;
 
     public function __construct()
     {
         $this->phpexcel = new PHPExcel();
         $this->path     = $path = dirname(dirname(dirname(dirname(__FILE__)))).'/plugins/dd_codes/csv/';
         $this->uploader = new Upload();
+        $this->code     = new Codes();
     }
 
     public function uploadFile()
     {
         try
         {
+            if(!$this->code->dateIsValid($_POST['validity_code']))
+            {
+                throw new \Exception('La date n\'est pas valide');
+            }
+
+            $this->validityDate = $_POST['validity_code'];
+
             $this->uploader->doUpload();
 
             if($this->uploader->uploadStatus)
@@ -49,33 +61,27 @@ class Reader{
     public function readFile()
     {
         $inputFileName = $this->path.$this->csv;
+        $objPHPExcel   = PHPExcel_IOFactory::load($inputFileName);
+        $objWorksheet  = $objPHPExcel->getActiveSheet();
 
-/*        $objReader = PHPExcel_IOFactory::createReader('Excel2007');
-        $objReader->setReadDataOnly(TRUE);
-        $objPHPExcel = $objReader->load($inputFileName);*/
-
-        $objPHPExcel = PHPExcel_IOFactory::load($inputFileName);
-
-        $objWorksheet = $objPHPExcel->getActiveSheet();
-
-        echo '<table>' . PHP_EOL;
-        foreach ($objWorksheet->getRowIterator() as $row) {
-            echo '<tr>' . PHP_EOL;
+        foreach ($objWorksheet->getRowIterator() as $row)
+        {
             $cellIterator = $row->getCellIterator();
             $cellIterator->setIterateOnlyExistingCells(FALSE); // This loops through all cells,
-            //    even if a cell value is not set.
-            // By default, only cells that have a value
-            //    set will be iterated.
-            foreach ($cellIterator as $cell) {
-                echo '<td>' .
-                    $cell->getValue() .
-                    '</td>' . PHP_EOL;
-            }
-            echo '</tr>' . PHP_EOL;
-        }
-        echo '</table>' . PHP_EOL;
-    }
+            // even if a cell value is not set. By default, only cells that have a value set will be iterated.
+            foreach ($cellIterator as $cell)
+            {
+                $params = [
+                    'number_code'   => $cell->getValue(),
+                    'validity_code' => $this->validityDate,
+                ];
 
+                $this->code->create($params);
+            }
+        }
+
+        return true;
+    }
 
 }	
 	

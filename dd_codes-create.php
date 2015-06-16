@@ -1,43 +1,23 @@
 <?php
-	
-function codeIsValid($code,$date){
-	
 
-	 $thisyearnumber = date('y');
-	 $thisdaydate    = date('Y-m-d');
-	 
-	 // Get 2 first digit from code
-	 $digit = substr($code, 0, 2);
-	 
-	 if( $digit >= $thisyearnumber && $date > $thisdaydate)
-	 {
-		 
-		 return true;
-	 }
-	 
-	 return false;
-	
-}
-	
-	
+if ( file_exists('vendor/autoload.php' ) ) require 'vendor/autoload.php';
+
 function dd_codes_create () 
 {
-	
-	$id_code 	   = $_POST["id_code"];
-	$number_code   = $_POST["number_code"];
-	$validity_code = $_POST["validity_code"];
+    $create = new src\Codes();
+
+    $number_code   = (isset($_POST["number_code"]) ? $_POST["number_code"] : '');
+    $validity_code = (isset($_POST["validity_code"]) ? $_POST["validity_code"] : '');
 	
 	//insert
 	if(isset($_POST['insert']))
 	{
-		global $wpdb;
         $message = '';
 
-		if(codeIsValid($number_code,$validity_code))
+		if($create->codeIsValid($number_code,$validity_code))
 		{
-			
-			$wpdb->insert('wp_code', array('number_code' => $number_code, 'validity_code' => $validity_code, 'valid_code' => 1, 'updated' => '0000-00-00', 'user_id' => 0));
-		
+            $create->create(['number_code' => $number_code, 'validity_code' => $validity_code]);
+
 			$location = admin_url('admin.php?page=dd_codes_list');
 			$location = add_query_arg( array( 'insert' => 'insert') , $location );
 			
@@ -76,16 +56,12 @@ function dd_codes_create ()
 					<th>&nbsp;</th>
 					<td align="right"><input type='submit' name="insert" value='Ajouter' class='button button-primary'></td>
 				</tr>
-				
 			</table>
 		</form>
-		
-	
+
 	    <script>
 		    jQuery(function() {
-		        jQuery( "#validity_code" ).datepicker({
-		            dateFormat : "yy-mm-dd"
-		        });
+		        jQuery( "#validity_code" ).datepicker({dateFormat : "yy-mm-dd"});
 		    });
 	    </script> 
 		

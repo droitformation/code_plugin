@@ -12,34 +12,31 @@ function dd_codes_import () {
 <link type="text/css" href="<?php echo WP_PLUGIN_URL; ?>/dd_codes/style-admin.css" rel="stylesheet" />
 
 <?php if(isset($_GET['erreur'])){?>
-    <?php $errors = ['Filetypenotallowed' => 'Le type de fichier n\'est pas correct'] ?>
+    <?php $errors = ['Filetypenotallowed' => 'Le type de fichier n\'est pas correct', 'Ladatenestpasvalide' => 'La date n\'est pas valide'] ?>
     <div class="error">
         <?php $error = (isset($errors[$_GET['erreur']]) ? $errors[$_GET['erreur']] : 'Problème avec le fichier'); ?>
         <p><?php echo $error; ?></p>
     </div>
 <?php } ?>
 
-<?php if (isset($message)): ?><div class="updated"><p><?php echo $message;?></p></div><?php endif;?>
+<?php if(isset($_GET['import'])){?><div class="updated"><p>Importation terminée</p></div><?php } ?>
 
     <div class="wrap">
 
     <?php  
-    //echo '<pre>';
-   // print_r($_POST);
-   // echo '</pre>';
 
-    //insert
     if(isset($_POST['upload']))
     {
-        $upload = $reader->uploadFile()->readFile();
+        if($reader->uploadFile()->readFile())
+        {
+            $location = admin_url('admin.php?page=dd_codes_import');
+            $location = add_query_arg( array('import' => 'import') , $location );
 
-        echo '<pre>';
-        print_r($upload);
-        echo '</pre>';
-
-
+            wp_redirect( $location );
+            exit;
+        }
     }
-    //$reader->readFile(); ?>
+    ?>
 
     <h2>Importer des codes</h2>
 
@@ -61,15 +58,12 @@ function dd_codes_import () {
                 <th>&nbsp;</th>
                 <td align="right"><input type='submit' name="upload" value='Télécharger' class='button button-primary'></td>
             </tr>
-
         </table>
     </form>
 
     <script>
         jQuery(function() {
-            jQuery( "#validity_code" ).datepicker({
-                dateFormat : "yy-mm-dd"
-            });
+            jQuery( "#validity_code" ).datepicker({ dateFormat : "yy-mm-dd"});
         });
     </script>
 

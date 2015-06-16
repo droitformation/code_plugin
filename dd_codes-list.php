@@ -1,10 +1,12 @@
 <?php
+if ( file_exists('vendor/autoload.php' ) ) require 'vendor/autoload.php';
+
 function dd_codes_list () {
+
+$create = new src\Codes();
 ?>
 
 <link type="text/css" href="<?php echo WP_PLUGIN_URL; ?>/dd_codes/style-admin.css" rel="stylesheet" />
-
-
 <script src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
 <link type="text/css" href="//cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css" rel="stylesheet" />
 
@@ -17,18 +19,15 @@ function dd_codes_list () {
 			global $wpdb;
 			
 			$thisyear    = date('Y') + 1;
-		
 			$currentDate = (isset($_POST['annee']) ? $_POST['annee'] : date("Y")); 
 			
-			$rows = $wpdb->get_results('SELECT * from wp_code WHERE validity_code BETWEEN "'.$currentDate.'-01-01" AND "'.$currentDate.'-12-31" ORDER BY number_code ASC,validity_code ASC'); 
+			$rows = $create->getAll($currentDate);
 			
 		?>
 	
-		<?php if($_GET['delete']){?><div class="updated"><p>Code supprimé</p></div><?php } ?>
-	
-		<?php if($_GET['update']){?><div class="updated"><p>Code mis à jour</p></div><?php } ?>
-		
-		<?php if($_GET['insert']){?><div class="updated"><p>Code crée</p></div><?php } ?>
+		<?php if(isset($_GET['delete'])){?><div class="updated"><p>Code supprimé</p></div><?php } ?>
+		<?php if(isset($_GET['update'])){?><div class="updated"><p>Code mis à jour</p></div><?php } ?>
+		<?php if(isset($_GET['insert'])){?><div class="updated"><p>Code crée</p></div><?php } ?>
 		
 		<h3>Année en cours <?php echo $currentDate; ?></h3>
 		
@@ -72,13 +71,13 @@ function dd_codes_list () {
 				echo "<td>$row->validity_code</td>";
 				echo '<td>'.($row->user_id ? 'non' : 'oui').'</td>';	
 				echo '<td>';
-				if($row->user_id){
+				if(isset($row->user_id)){
 					
 					$user_info  = get_userdata($row->user_id);
 
-			        $email      = $user_info->user_email;
-			        $first_name = $user_info->first_name;
-			        $last_name  = $user_info->last_name;
+			        $email      = (isset($user_info->user_email) ? $user_info->user_email : '');
+			        $first_name = (isset($user_info->first_name) ? $user_info->first_name : '');
+			        $last_name  = (isset($user_info->last_name) ? $user_info->last_name : '');
 			        
 			        if(!empty($first_name) && !empty($last_name))
 			        {

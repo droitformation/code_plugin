@@ -31,7 +31,7 @@ function dd_codes_modifymenu() {
 	'dd_codes_create'); //function
 
     //this is a submenu
-    add_submenu_page('dd_codes_import', //parent slug
+    add_submenu_page('dd_codes_list', //parent slug
     'Importer des codes', //page title
     'Importer des codes', //menu title
     'manage_options', //capability
