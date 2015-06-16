@@ -45,7 +45,7 @@ function dd_codes_import () {
     <form method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>" enctype="multipart/form-data">
         <table class='wp-list-table widefat fixed striped' style="width: 570px; margin-top: 20px;">
             <tr>
-                <th>Codes (fichier excel ou csv)</th>
+                <th>Codes (fichier excel)</th>
                 <td align="right">
                     <input type="file" name="file" value=""/>
                 </td>

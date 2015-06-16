@@ -75,7 +75,7 @@ class Codes{
 
         global $wpdb;
 
-        $params =[
+        $params = [
             'number_code'   => $data['number_code'],
             'validity_code' => $data['validity_code'],
             'valid_code'    => (isset($data['valid_code']) ? $data['valid_code'] : 1),
@@ -83,13 +83,12 @@ class Codes{
             'user_id'       => (isset($data['user_id']) ? $data['user_id'] : 0),
         ];
 
-        return $wpdb->update(
+       return $wpdb->update(
             'wp_code', //table
-            array($params), //data
+            $params, //data
             array( 'id_code' => $id ), //where
             array('%d','%s','%d','%s','%d'), array('%d') //data format
         );
-
     }
 
     public function delete($id)

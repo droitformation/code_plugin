@@ -124,10 +124,8 @@ else
 	
 	<script>
 	    jQuery(function() {
-		    
-	        jQuery( "#validity_code" ).datepicker({
-	            dateFormat : "dd-mm-yy"
-	        });
+
+            jQuery( "#validity_code" ).datepicker({dateFormat : "yy-mm-dd"});
 	        
 	        var se_ajax_url = '<?php echo admin_url('admin-ajax.php'); ?>';
 
