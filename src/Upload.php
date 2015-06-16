@@ -5,27 +5,45 @@ class Upload{
     protected $file;
     protected $uploadDir;
 
+    public $errorMsg;
+    public $uploadStatus;
+    public $fileName;
+    public $resultUpload;
+    public $headerUpload;
+
     public function __construct()
     {
-        $this->uploadDir  = $path = dirname(dirname(dirname(dirname(__FILE__)))).'/plugins/dd_codes/csv';
+        $this->uploadDir = $path = dirname(dirname(dirname(dirname(__FILE__)))).'/plugins/dd_codes/csv';
     }
 
     public function doUpload()
     {
         $results = $this->upload();
 
-        if(isset($results['files'][0]) && $results['files'][0]->error == 0)
+        if( $results->resultUpload[0]->error != '')
         {
-            return $results['files'][0]['name'];
+            $this->errorMsg    = $results->resultUpload[0]->error;
+            $this->uploadStatus = false;
+        }
+        else
+        {
+            $this->uploadStatus = true;
+            $this->fileName     = $results->resultUpload[0]->name;
         }
 
-        return false;
+        return $this;
     }
 
     public function upload(){
 
         // Simple validation (max file size 2MB and only two allowed mime types)
-       // $validator = new \FileUpload\Validator\Simple(1024 * 1024 * 2, ['application/excel', 'application/vnd.ms-excel','application/vnd.msexcel','text/csv','application\/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
+        $validator = new \FileUpload\Validator\Simple(1024 * 1024 * 2, [
+            'application/excel',
+            'application/vnd.ms-excel',
+            'application/vnd.msexcel',
+            'text/csv',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ]);
 
         // Simple path resolver, where uploads will be put
         $pathresolver = new \FileUpload\PathResolver\Simple($this->uploadDir);
@@ -36,20 +54,20 @@ class Upload{
         // FileUploader itself
         $fileupload = new \FileUpload\FileUpload($_FILES['file'], $_SERVER);
 
+        $filenamegenerator = new \FileUpload\FileNameGenerator\Random();
+        $fileupload->setFileNameGenerator($filenamegenerator);
         // Adding it all together. Note that you can use multiple validators or none at all
         $fileupload->setPathResolver($pathresolver);
         $fileupload->setFileSystem($filesystem);
-       // $fileupload->addValidator($validator);
+        $fileupload->addValidator($validator);
 
         // Doing the deed
         list($files, $headers) = $fileupload->processAll();
 
-        // Outputting it, for example like this
-/*        foreach($headers as $header => $value) {
-            header($header . ': ' . $value);
-        }*/
+        $this->resultUpload = $files;
+        $this->headerUpload = $headers;
 
-        return array('files' => $files);
+        return $this;
     }
 
 }

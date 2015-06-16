@@ -14,29 +14,47 @@ class Reader{
     public function __construct()
     {
         $this->phpexcel = new PHPExcel();
-        $this->path     = $path = dirname(dirname(dirname(dirname(__FILE__)))).'/plugins/dd_codes/';
+        $this->path     = $path = dirname(dirname(dirname(dirname(__FILE__)))).'/plugins/dd_codes/csv/';
         $this->uploader = new Upload();
     }
 
     public function uploadFile()
     {
-        $name = $this->uploader->doUpload();
-
-        if($name)
+        try
         {
-            $this->csv = $name;
+            $this->uploader->doUpload();
+
+            if($this->uploader->uploadStatus)
+            {
+                $this->csv = $this->uploader->fileName;
+
+                return $this;
+            }
+            else
+            {
+                throw new \Exception($this->uploader->errorMsg);
+            }
+        }
+        catch (\Exception $e)
+        {
+            $location = admin_url('admin.php?page=dd_codes_import');
+            $location = add_query_arg( array( 'erreur' => $e->getMessage()) , $location );
+
+            wp_redirect( $location );
+            exit;
         }
 
-        return $this;
     }
 
     public function readFile()
     {
-        $inputFileName = $this->path.'csv/'.$this->csv;
+        $inputFileName = $this->path.$this->csv;
 
-        $objReader = PHPExcel_IOFactory::createReader('Excel2007');
+/*        $objReader = PHPExcel_IOFactory::createReader('Excel2007');
         $objReader->setReadDataOnly(TRUE);
-        $objPHPExcel = $objReader->load($inputFileName);
+        $objPHPExcel = $objReader->load($inputFileName);*/
+
+        $objPHPExcel = PHPExcel_IOFactory::load($inputFileName);
 
         $objWorksheet = $objPHPExcel->getActiveSheet();
 

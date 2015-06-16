@@ -11,26 +11,37 @@ function dd_codes_import () {
 
 <link type="text/css" href="<?php echo WP_PLUGIN_URL; ?>/dd_codes/style-admin.css" rel="stylesheet" />
 
-<div class="wrap">
-	<h2>Codes d'accès</h2>
-	
+<?php if(isset($_GET['erreur'])){?>
+    <?php $errors = ['Filetypenotallowed' => 'Le type de fichier n\'est pas correct'] ?>
+    <div class="error">
+        <?php $error = (isset($errors[$_GET['erreur']]) ? $errors[$_GET['erreur']] : 'Problème avec le fichier'); ?>
+        <p><?php echo $error; ?></p>
+    </div>
+<?php } ?>
+
+<?php if (isset($message)): ?><div class="updated"><p><?php echo $message;?></p></div><?php endif;?>
+
+    <div class="wrap">
+
     <?php  
-    echo '<pre>';
-    print_r($_POST);
-    echo '</pre>';
+    //echo '<pre>';
+   // print_r($_POST);
+   // echo '</pre>';
 
     //insert
     if(isset($_POST['upload']))
     {
+        $upload = $reader->uploadFile()->readFile();
+
         echo '<pre>';
-        print_r($upload->doUpload());
+        print_r($upload);
         echo '</pre>';
+
+
     }
     //$reader->readFile(); ?>
 
     <h2>Importer des codes</h2>
-
-    <?php if (isset($message)): ?><div class="updated"><p><?php echo $message;?></p></div><?php endif;?>
 
     <p><a href="<?php echo admin_url('admin.php?page=dd_codes_list')?>">&laquo; Retour aux codes</a></p>
 

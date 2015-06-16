@@ -2,6 +2,8 @@
 
 namespace FileUpload;
 
+use FileUpload\FileNameGenerator\FileNameGenerator;
+use FileUpload\FileNameGenerator\Simple;
 use FileUpload\PathResolver\PathResolver;
 use FileUpload\FileSystem\FileSystem;
 use FileUpload\Validator\Validator;
@@ -15,6 +17,12 @@ class FileUpload {
   protected $upload;
 
   /**
+   * The array of uploaded files
+   * @var array
+   */
+  protected $files;
+
+  /**
    * $_SERVER
    * @var array
    */
@@ -25,6 +33,12 @@ class FileUpload {
    * @var PathResolver
    */
   protected $pathresolver;
+
+    /**
+     * Path resolver instance
+     * @var FileNameGenerator
+     */
+  protected $filename_generator;
 
   /**
    * File system instance
@@ -81,6 +95,7 @@ class FileUpload {
   public function __construct($upload, $server) {
     $this->upload = isset($upload) ? $upload : null;
     $this->server = $server;
+    $this->filename_generator = new Simple();
   }
 
   /**
@@ -90,6 +105,14 @@ class FileUpload {
   public function setPathResolver(PathResolver $pr) {
     $this->pathresolver = $pr;
   }
+
+    /**
+     * Set filename generator
+     * @param FileNameGenerator $fng
+     */
+    public function setFileNameGenerator(FileNameGenerator $fng) {
+        $this->filename_generator = $fng;
+    }
 
   /**
    * Set file system
@@ -158,13 +181,21 @@ class FileUpload {
   }
 
   /**
+   * Returns an array of all uploaded files
+   * @return array
+   */
+  public function getFiles() {
+      return($this->files);
+  }
+
+  /**
    * Process entire submitted request
    * @return array Files and response headers
    */
   public function processAll() {
     $content_range = $this->getContentRange();
     $size          = $this->getSize();
-    $files         = array();
+    $this->files   = array();
     $upload        = $this->upload;
 
     if($this->logger) {
@@ -183,7 +214,7 @@ class FileUpload {
           continue;
         }
 
-        $files[] = $this->process(
+        $this->files[] = $this->process(
           $tmp_name,
           $upload['name'][$index],
           $size ? $size : $upload['size'][$index],
@@ -194,7 +225,7 @@ class FileUpload {
         );
       }
     } else if($upload && !empty($upload['tmp_name'])) {
-      $files[] = $this->process(
+      $this->files[] = $this->process(
         $upload['tmp_name'],
         $upload['name'],
         $size ? $size : (isset($upload['size']) ? $upload['size'] : $this->getContentLength()),
@@ -203,9 +234,14 @@ class FileUpload {
         0,
         $content_range
       );
+    } else if($upload && $upload['error'] != 0) {
+        $file = new File();
+        $file->error = $this->messages[$upload['error']];
+        $file->error_code = $upload['error'];
+        $this->files[] = $file;
     }
 
-    return array($files, $this->getNewHeaders($files, $content_range));
+    return array($this->files, $this->getNewHeaders($this->files, $content_range));
   }
 
   /**
@@ -255,7 +291,7 @@ class FileUpload {
    */
   protected function process($tmp_name, $name, $size, $type, $error, $index = 0, $content_range = null) {
     $file = new File;
-    $file->name = $this->getFilename($name, $type, $index, $content_range);
+    $file->name = $this->getFilename($name, $type, $index, $content_range, $tmp_name);
     $file->size = $this->fixIntegerOverflow(intval($size));
     $file->setTypeFromPath($tmp_name);
 
@@ -294,6 +330,7 @@ class FileUpload {
       if($file->size == $file_size) {
         // Yay, upload is complete!
         $file->path = $file_path;
+        $file->completed = true;
         $this->processCallbacksFor('completed', $file);
       } else {
         $file->size = $file_size;
@@ -330,10 +367,12 @@ class FileUpload {
    * @param  string  $type
    * @param  integer $index
    * @param  array   $content_range
+   * @param  string  $tmp_name
    * @return string
    */
-  protected function getFilename($name, $type, $index, $content_range) {
-    return $this->getUniqueFilename($this->trimFilename($name, $type, $index, $content_range), $type, $index, $content_range);
+  protected function getFilename($name, $type, $index, $content_range, $tmp_name) {
+    $name = $this->trimFilename($name, $type, $index, $content_range);
+    return($this->filename_generator->getFileName($name, $type, $tmp_name, $index, $content_range, $this->pathresolver, $this->filesystem));
   }
 
   /**
@@ -348,32 +387,6 @@ class FileUpload {
     }
 
     return $this->fixIntegerOverflow($this->filesystem->getFilesize($path));
-  }
-
-  /**
-   * Get unique but consistent name
-   * @param  string  $name
-   * @param  string  $type
-   * @param  integer $index
-   * @param  array   $content_range
-   * @return string
-   */
-  protected function getUniqueFilename($name, $type, $index, $content_range) {
-    while($this->filesystem->isDir($this->pathresolver->getUploadPath($name))) {
-      $name = $this->pathresolver->upcountName($name);
-    }
-
-    $uploaded_bytes = $this->fixIntegerOverflow(intval($content_range[1]));
-
-    while($this->filesystem->isFile($this->pathresolver->getUploadPath($name))) {
-      if($uploaded_bytes == $this->getFilesize($this->pathresolver->getUploadPath($name))) {
-        break;
-      }
-
-      $name = $this->pathresolver->upcountName($name);
-    }
-
-    return $name;
   }
 
   /**
@@ -432,6 +445,7 @@ class FileUpload {
     if($error !== 0) {
       // PHP error
       $file->error = $this->messages[$error];
+      $file->error_code = $error;
       return false;
     }
 
@@ -442,6 +456,7 @@ class FileUpload {
     if(($post_max_size && ($content_length > $post_max_size)) || ($upload_max_size && ($content_length > $upload_max_size))) {
       // Uploaded file exceeds maximum filesize PHP accepts in the configs
       $file->error = $this->messages[self::UPLOAD_ERR_PHP_SIZE];
+      $file->error_code = self::UPLOAD_ERR_PHP_SIZE;
       return false;
     }
 

@@ -2,7 +2,7 @@
     "require": {
         "phpoffice/phpexcel": "1.8.0",
         "phpunit/phpunit": "4.0.*",
-        "gargron/fileupload": "1.0.*"
+        "gargron/fileupload": "dev-master#f01842387f054e0c67e23c8213c8e7b42f3d6179"
     },
     "autoload": {
 	    "psr-0": {

@@ -4,23 +4,24 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "067ffdf507652eb000de990956bd4a73",
+    "hash": "beaac32982fc0e3c4220d67db3a073e8",
     "packages": [
         {
             "name": "gargron/fileupload",
-            "version": "v1.0.2",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Gargron/fileupload.git",
-                "reference": "0883a61b614fff96ddc5b1d39b646eafe470e7f2"
+                "reference": "f01842387f054e0c67e23c8213c8e7b42f3d6179"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Gargron/fileupload/zipball/0883a61b614fff96ddc5b1d39b646eafe470e7f2",
-                "reference": "0883a61b614fff96ddc5b1d39b646eafe470e7f2",
+                "url": "https://api.github.com/repos/Gargron/fileupload/zipball/f01842387f054e0c67e23c8213c8e7b42f3d6179",
+                "reference": "f01842387f054e0c67e23c8213c8e7b42f3d6179",
                 "shasum": ""
             },
             "require-dev": {
+                "mockery/mockery": "dev-master",
                 "phpunit/phpunit": "3.7.*"
             },
             "type": "library",
@@ -34,7 +35,7 @@
                 "MIT"
             ],
             "description": "File uploading library capable of handling large/chunked/multiple file uploads",
-            "time": "2014-02-20 14:23:50"
+            "time": "2014-12-14 12:33:31"
         },
         {
             "name": "phpoffice/phpexcel",
@@ -719,7 +720,9 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "gargron/fileupload": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],

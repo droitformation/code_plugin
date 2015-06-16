@@ -10,10 +10,22 @@ class File {
   public $error = 0;
 
   /**
+   * Preset no errors
+   * @var mixed
+   */
+  public $error_code = 0;
+
+  /**
    * Preset unknown mime type
    * @var string
    */
   public $type  = 'application/octet-stream';
+
+  /**
+   * Is the file completely downloaded
+   * @var boolean
+   */
+  public $completed  = false;
 
   /**
    * Determine file type from path (actual mime type, not extension checking)
